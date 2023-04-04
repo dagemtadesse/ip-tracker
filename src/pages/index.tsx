@@ -2,27 +2,34 @@ import { useRef, useEffect, useState } from "react";
 import { Map, Marker } from "pigeon-maps";
 import Head from "next/head";
 
+const fetchIpInfo = async (ip?: string) => {
+  try {
+    const resp = await fetch(`https://ipapi.co/${ip ? ip + "/" : ""}json/`);
+    const data = await resp.json();
+
+    return {
+      ip: data.ip,
+      location: `${data.city}, ${data.country}`,
+      timezone: data.timezone,
+      isp: data.isp,
+      lat: data.latitude,
+      lng: data.longitude,
+    };
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export default function Home() {
   const header = useRef<HTMLDivElement>(null);
 
-  const [ip, setIp] = useState("51.159.197.229");
+  const [ip, setIp] = useState("");
   const [mapHeight, setMapHeight] = useState(0);
   const [data, setData] = useState<any | null>(null);
 
-  const loadInfo = (e?: any) => {
-    e && e.preventDefault();
-    fetch(`https://ipapi.co/${ip}/json/`)
-      .then((res) => res.json())
-      .then((data) => {
-        setData({
-          ip: data.query,
-          location: `${data.city}, ${data.country}`,
-          timezone: data.timezone,
-          isp: data.isp,
-          lat: data.lat,
-          lng: data.lon,
-        });
-      });
+  const loadInfo = (e: SubmitEvent) => {
+    e.preventDefault();
+    fetchIpInfo(ip).then(setData);
   };
 
   useEffect(() => {
@@ -30,6 +37,10 @@ export default function Home() {
       setMapHeight(window.innerHeight - (header.current?.clientHeight || 0));
     }
   }, [header]);
+
+  useEffect(() => {
+    fetchIpInfo().then(setData);
+  }, []);
 
   const loc = data ? [Number(data.lat), Number(data.lng)] : [0, 0];
 
@@ -47,7 +58,7 @@ export default function Home() {
           <h2 className="text-white text-2xl">IP Address Tracker</h2>
 
           <form
-            onSubmit={loadInfo}
+            onSubmit={loadInfo as any}
             className="bg-white rounded-xl overflow-hidden flex items-center w-full max-w-xl mt-6 mb-6 mb:mb-10"
           >
             <input
