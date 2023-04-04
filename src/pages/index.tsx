@@ -11,7 +11,7 @@ export default function Home() {
 
   const loadInfo = (e?: any) => {
     e && e.preventDefault();
-    fetch(`http://ip-api.com/json/${ip}`)
+    fetch(`https://ipapi.co/${ip}/json/`)
       .then((res) => res.json())
       .then((data) => {
         setData({
